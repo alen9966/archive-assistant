@@ -5,26 +5,223 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目资料归档助手</title>
   <style>
-    body { font: 16px/1.6 "Segoe UI", "Microsoft YaHei", sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1f2a37; }
-    h1 { font-size: 22px; }
-    a { color: #1b6aa3; }
-    code, pre { background: #f4f6f8; border-radius: 6px; }
-    code { padding: 1px 6px; }
-    pre { padding: 12px 14px; overflow: auto; }
-    .card { border: 1px solid #d8dee6; border-radius: 10px; padding: 16px; margin: 16px 0; }
-    .ok { color: #1f7a4d; }
+    :root {
+      --bg: #f4f6f8; --card: #fff; --line: #d8dee6; --text: #1f2a37; --muted: #5b6775;
+      --accent: #1b6aa3; --ok: #1f7a4d; --warn: #b45309; --bad: #b42318;
+      --bad-bg: #fde8e6; --ok-bg: #e8f6ee; --dup-bg: #eef2ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
+    header { background: linear-gradient(90deg, #12364f, #1b6aa3); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    header h1 { margin: 0; font-size: 18px; font-weight: 650; }
+    header p { margin: 2px 0 0; opacity: .85; font-size: 12px; }
+    .wrap { display: grid; grid-template-columns: 280px 1fr; gap: 12px; padding: 12px; min-height: calc(100vh - 64px); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    h2 { margin: 0 0 10px; font-size: 14px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+    input, textarea, select { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; }
+    textarea { min-height: 48px; resize: vertical; }
+    .drop { border: 2px dashed #9ab4c8; border-radius: 12px; background: #f8fbfe; padding: 22px; text-align: center; margin-bottom: 10px; cursor: pointer; }
+    .drop.over { border-color: var(--accent); background: #eaf4fb; }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    button { border: 0; border-radius: 7px; padding: 8px 12px; cursor: pointer; font: inherit; color: #fff; background: var(--accent); }
+    button.secondary { background: #4b5c6b; }
+    button.ok { background: var(--ok); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+    .stat { background: #eef3f7; border-radius: 8px; padding: 6px 10px; font-size: 12px; }
+    .stat b { display: block; font-size: 16px; }
+    .tree-group { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .tree-h { background: #eef3f7; padding: 7px 10px; font-weight: 600; }
+    .tree-h.u99 { background: var(--bad-bg); color: var(--bad); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-top: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+    tr.s-待确认 { background: var(--bad-bg); }
+    tr.s-已归档 { background: var(--ok-bg); }
+    .tag { display: inline-block; padding: 1px 6px; border-radius: 99px; font-size: 11px; color: #fff; }
+    .tag-待确认 { background: var(--bad); }
+    .tag-已归档 { background: var(--ok); }
+    .msg { font-size: 12px; color: var(--muted); min-height: 18px; }
+    .err { color: var(--bad); }
+    .okt { color: var(--ok); }
+    .reason { color: var(--muted); max-width: 280px; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .hidden { display: none; }
+    @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <h1>项目资料归档助手</h1>
-  <p>这是公开说明页。归档功能在你自己电脑上运行，不会把图纸传到网上。</p>
-  <div class="card">
-    <p class="ok"><strong>本机使用（能真正分类文件）</strong></p>
-    <pre>py -3 -m pip install -r requirements.txt
-py -3 -m archive_assistant web</pre>
-    <p>然后打开 <a href="http://127.0.0.1:8765/">http://127.0.0.1:8765/</a></p>
+  <header>
+    <div>
+      <h1>项目资料归档助手</h1>
+      <p>点链接即可使用。请用 Chrome 或 Edge。文件只在你电脑上分类，不会上传到网上。</p>
+    </div>
+    <div class="hint" style="color:#fff;opacity:.9">GitHub Pages · 本机处理</div>
+  </header>
+  <div class="wrap">
+    <aside class="card">
+      <h2>项目信息（可不填）</h2>
+      <p class="hint">空着也能分类。填了只用于显示。</p>
+      <label>项目名称</label><input id="project_name" />
+      <label>项目工号</label><input id="project_code" placeholder="如 ZCJY260101" />
+      <label>型号</label><input id="model" />
+      <label>板号（每行一个）</label><textarea id="boards" placeholder="ZC7.820.0155-V3"></textarea>
+      <p class="hint" id="browserHint"></p>
+    </aside>
+    <main class="card">
+      <div class="drop" id="drop" tabindex="0">
+        <strong>把整个资料文件夹拖到这里，或点「选择资料文件夹」</strong>
+        <div class="hint">PCB、原理图、BOM、库、DRC、三防、阻容备料等会自动分类；认不出的进 99_待确认与其他。Altium History 会跳过。</div>
+      </div>
+      <div class="btns">
+        <button type="button" id="btnDir">选择资料文件夹</button>
+        <button type="button" class="secondary" id="btnDemo">加载演示样例</button>
+        <button type="button" class="ok" id="btnApply">生成分类文件夹</button>
+        <button type="button" class="secondary" id="btnZip">下载分类压缩包</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin:6px 0;">
+        <input type="checkbox" id="confirmCopy" style="width:auto" />
+        我已核对分类，允许生成新的分类文件夹（只复制，不删除原文件、不覆盖）
+      </label>
+      <input id="dirInput" type="file" webkitdirectory directory class="hidden" />
+      <div class="msg" id="msg"></div>
+      <div class="stats" id="stats"></div>
+      <div id="tree"></div>
+    </main>
   </div>
-  <p>源码：<a href="https://github.com/alen9966/archive-assistant">github.com/alen9966/archive-assistant</a></p>
-  <p>若 GitHub 打不开，可把仓库克隆地址换成镜像后再下载。</p>
+  <script src="./app.js"></script>
+  <script>
+    const state = { files: [], folders: ArchiveApp.folderOptions() };
+    const $ = (id) => document.getElementById(id);
+    const canFS = typeof window.showDirectoryPicker === "function";
+    $("browserHint").textContent = canFS
+      ? "检测到 Chrome/Edge：生成时会弹出「保存到哪个文件夹」。"
+      : "当前浏览器不支持直接写盘，请改用 Chrome/Edge，或用「下载分类压缩包」（小文件夹）。";
+
+    function setMsg(text, cls) {
+      $("msg").className = "msg " + (cls || "");
+      $("msg").textContent = text || "";
+    }
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function previewItems(items) {
+      state.files = ArchiveApp.classifyList(items);
+      const total = state.files.length;
+      const pending = state.files.filter((f) => f.status === "待确认").length;
+      const classified = total - pending;
+      $("stats").innerHTML = [
+        ["总数", total], ["已分类", classified], ["待确认", pending],
+      ].map(([k, v]) => `<div class="stat"><b>${v}</b>${k}</div>`).join("");
+      const groups = {};
+      for (const f of state.files) (groups[f.main] ||= []).push(f);
+      let html = "";
+      for (const g of Object.keys(groups).sort()) {
+        html += `<div class="tree-group"><div class="tree-h${g.startsWith("99") ? " u99" : ""}">${escapeHtml(g)}（${groups[g].length}）</div>`;
+        html += `<table><thead><tr><th>原文件名</th><th>目标文件夹</th><th>状态</th><th>原因</th></tr></thead><tbody>`;
+        for (const f of groups[g]) {
+          html += `<tr class="s-${escapeHtml(f.status)}"><td>${escapeHtml(f.original_name)}<div class="hint">${escapeHtml(f.rel)}</div></td><td>${folderSelect(f)}</td><td><span class="tag tag-${escapeHtml(f.status)}">${escapeHtml(f.status)}</span></td><td class="reason">${f.confidence}<br>${escapeHtml(f.reason)}</td></tr>`;
+        }
+        html += `</tbody></table></div>`;
+      }
+      $("tree").innerHTML = html;
+      $("tree").querySelectorAll(".folder-sel").forEach((el) => {
+        el.addEventListener("change", () => {
+          const f = state.files.find((x) => x.id === el.dataset.id);
+          if (!f) return;
+          const fo = state.folders.find((x) => x.label === el.value);
+          if (fo) { f.folder = fo.label; f.main = fo.main; f.sub = fo.sub; f.extra_sub = fo.extra_sub; f.status = f.main.startsWith("99") ? "待确认" : "已归档"; }
+          previewItems(state.files.map((x) => ({ rel: x.rel, name: x.original_name, file: x.file, handle: x.handle })));
+        });
+      });
+    }
+    function folderSelect(file) {
+      return `<select data-id="${escapeHtml(file.id)}" class="folder-sel">${state.folders.map((fo) => `<option value="${escapeHtml(fo.label)}"${fo.label === file.folder ? " selected" : ""}>${escapeHtml(fo.label)}</option>`).join("")}</select>`;
+    }
+
+    async function pickSourceFolder() {
+      if (canFS) {
+        const dir = await window.showDirectoryPicker({ mode: "read" });
+        setMsg("正在扫描（不上传）…");
+        const acc = [];
+        await ArchiveApp.walkHandle(dir, "", acc);
+        previewItems(acc);
+        setMsg("识别完成：" + acc.length + " 个文件。请核对后点「生成分类文件夹」。");
+        return;
+      }
+      $("dirInput").click();
+    }
+
+    $("dirInput").addEventListener("change", (e) => {
+      const items = ArchiveApp.fromFileList(e.target.files);
+      previewItems(items);
+      setMsg("识别完成：" + items.length + " 个文件。请核对后点「生成分类文件夹」。");
+    });
+
+    $("drop").addEventListener("dragover", (e) => { e.preventDefault(); $("drop").classList.add("over"); });
+    $("drop").addEventListener("dragleave", () => $("drop").classList.remove("over"));
+    $("drop").addEventListener("drop", async (e) => {
+      e.preventDefault();
+      $("drop").classList.remove("over");
+      try {
+        if (e.dataTransfer.items && e.dataTransfer.items[0] && e.dataTransfer.items[0].getAsFileSystemHandle) {
+          const handle = await e.dataTransfer.items[0].getAsFileSystemHandle();
+          if (handle && handle.kind === "directory") {
+            setMsg("正在扫描（不上传）…");
+            const acc = [];
+            await ArchiveApp.walkHandle(handle, "", acc);
+            previewItems(acc);
+            setMsg("识别完成：" + acc.length + " 个文件。");
+            return;
+          }
+        }
+        const items = ArchiveApp.fromFileList(e.dataTransfer.files);
+        previewItems(items);
+        setMsg("识别完成：" + items.length + " 个文件。");
+      } catch (err) { setMsg(err.message, "err"); }
+    });
+    $("drop").addEventListener("click", () => pickSourceFolder().catch((e) => setMsg(e.message === "The user aborted a request." ? "已取消选择。" : e.message, "err")));
+    $("btnDir").addEventListener("click", () => pickSourceFolder().catch((e) => setMsg(e.message === "The user aborted a request." ? "已取消选择。" : e.message, "err")));
+
+    $("btnDemo").addEventListener("click", () => {
+      const demo = [
+        "原理图/ZC7.820.0155-V3.SchDoc", "PCB/ZC7.820.0155-V3.PcbDoc", "lib/power.IntLib",
+        "BOM表/采购清单.xlsx", "三防.pdf", "C7.820.0155-V3_外协阻容备料清单.xlsx",
+        "ZC7.820.0155-V3.xlsx", "ZC7.820.0155-V3_1.PCBDwf", "Project Outputs for ZC7.820.0155-V3.rar",
+        "Pcb/Design Rule Check.html", "无法识别的杂项.dat",
+      ].map((rel) => ({ rel, name: rel.split("/").pop(), file: new File([rel], rel.split("/").pop()) }));
+      previewItems(demo);
+      setMsg("演示样例已识别。同事可改分类后点「生成分类文件夹」。");
+    });
+
+    async function applyCopy() {
+      if (!state.files.length) { setMsg("请先选择资料文件夹。", "err"); return; }
+      if (!$("confirmCopy").checked) { setMsg("请先勾选允许生成分类文件夹。", "err"); return; }
+      if (!canFS) {
+        setMsg("请用 Chrome 或 Edge 打开本页，才能直接生成文件夹。也可点「下载分类压缩包」。", "err");
+        return;
+      }
+      setMsg("请选择归档输出文件夹…");
+      const out = await window.showDirectoryPicker({ mode: "readwrite", startIn: "documents" });
+      setMsg("正在建立目录并复制（不删除原文件）…");
+      await ArchiveApp.writeTree(out);
+      const n = await ArchiveApp.copyOut(out, state.files);
+      setMsg("完成：已复制 " + n + " 个文件。原资料仍在。", "okt");
+    }
+    $("btnApply").addEventListener("click", () => applyCopy().catch((e) => setMsg(e.message === "The user aborted a request." ? "已取消。" : e.message, "err")));
+    $("btnZip").addEventListener("click", async () => {
+      if (!state.files.length) { setMsg("请先选择资料文件夹。", "err"); return; }
+      if (!$("confirmCopy").checked) { setMsg("请先勾选允许生成分类文件夹。", "err"); return; }
+      const bytes = state.files.reduce((s, f) => s + (f.file && f.file.size ? f.file.size : 0), 0);
+      if (bytes > 80 * 1024 * 1024) {
+        setMsg("文件夹超过 80MB，请用 Chrome/Edge 点「生成分类文件夹」写到本机目录，不要下压缩包。", "err");
+        return;
+      }
+      setMsg("正在打包（文件仍只在本机）…");
+      const name = ($("project_name").value || "项目") + "_归档包.zip";
+      await ArchiveApp.downloadZip(state.files, name);
+      setMsg("已开始下载压缩包。", "okt");
+    });
+  </script>
 </body>
 </html>

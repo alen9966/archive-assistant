@@ -1,5 +1,10 @@
 # 项目资料归档助手
 
+在线说明页：https://alen9966.github.io/archive-assistant/  
+源码：https://github.com/alen9966/archive-assistant
+
+GitHub 只能看代码和说明，**不能在网页里直接归档本地图纸**。真正分类文件请在本机运行下面命令。
+
 在本目录打开终端。未装依赖时：`py -3 -m pip install -r requirements.txt`（xlsx 写失败仍会出 csv）。
 
 ## 网页（推荐）

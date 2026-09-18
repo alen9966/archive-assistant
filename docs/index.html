@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>项目资料归档助手</title>
+  <style>
+    body { font: 16px/1.6 "Segoe UI", "Microsoft YaHei", sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1f2a37; }
+    h1 { font-size: 22px; }
+    a { color: #1b6aa3; }
+    code, pre { background: #f4f6f8; border-radius: 6px; }
+    code { padding: 1px 6px; }
+    pre { padding: 12px 14px; overflow: auto; }
+    .card { border: 1px solid #d8dee6; border-radius: 10px; padding: 16px; margin: 16px 0; }
+    .ok { color: #1f7a4d; }
+  </style>
+</head>
+<body>
+  <h1>项目资料归档助手</h1>
+  <p>这是公开说明页。归档功能在你自己电脑上运行，不会把图纸传到网上。</p>
+  <div class="card">
+    <p class="ok"><strong>本机使用（能真正分类文件）</strong></p>
+    <pre>py -3 -m pip install -r requirements.txt
+py -3 -m archive_assistant web</pre>
+    <p>然后打开 <a href="http://127.0.0.1:8765/">http://127.0.0.1:8765/</a></p>
+  </div>
+  <p>源码：<a href="https://github.com/alen9966/archive-assistant">github.com/alen9966/archive-assistant</a></p>
+  <p>若 GitHub 打不开，可把仓库克隆地址换成镜像后再下载。</p>
+</body>
+</html>

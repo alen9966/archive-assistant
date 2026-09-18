@@ -1,0 +1,33 @@
+# 项目配置示例（暂定默认，可改）
+# 请填写实际项目信息；留空表示未知，程序不会编造。
+# 复制本文件为 project.yaml 后修改。
+
+project_name: ""          # 项目名称
+project_code: ""          # 项目工号，如 ZCJY260101
+model: ""                 # 型号
+boards: []                # 板号列表，保持原样，例如 ZC7.820.0001-V6.1
+# boards:
+#   - ZC7.820.0001-V6.1
+assembly_variants: []     # 装配变量
+# assembly_variants:
+#   - name: 授时守时板卡     # 装配变量名称
+#     code: ZCJY260101      # 工号或装配变量代码
+quantity: ""              # 套数，如 2套
+
+owners:                   # 索引记录全部角色；人名可填，没有则待确认
+  hardware: ""            # 硬件
+  quality: ""             # 质量
+  test: ""                # 测试
+  software: ""            # 软件
+  purchase: ""            # 采购
+  production: ""          # 生产
+  structure: ""           # 结构（模板负责人为王杰）
+
+confirmers: {}            # 实际确认人，写入备注。例：hardware: 张三
+
+archive_date: ""          # YYYYMMDD；空则用运行当天（暂定默认，可改）
+
+allow_move: false         # 暂定默认只复制，不移动、不删除
+confirm_move: false       # 二次确认；还须命令行 --confirm-move 才会移动
+
+not_applicable: []        # 标记为「不适用」的模板项，如 维修单

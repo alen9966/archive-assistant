@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 from archive_assistant.catalog import iter_directory_relpaths
@@ -101,6 +102,7 @@ owners:
         for rel in iter_directory_relpaths():
             self.assertTrue((self.output / Path(*rel.split("/"))).is_dir(), rel)
         for name in (
+            "00_归档目录.txt",
             "00_归档索引.xlsx",
             "00_归档索引.csv",
             "00_缺失资料清单.xlsx",
@@ -121,6 +123,10 @@ owners:
         report = (self.output / "00_归档报告.md").read_text(encoding="utf-8")
         self.assertIn("暂定默认", report)
         self.assertIn("演示项目", report)
+        directory_text = (self.output / "00_归档目录.txt").read_text(encoding="utf-8")
+        self.assertIn("项目资料归档目录", directory_text)
+        self.assertIn("00_需求确认/", directory_text)
+        self.assertIn("00_归档索引.xlsx", directory_text)
 
     def test_apply_copies_keeps_source_no_overwrite(self) -> None:
         before_src = self._source_names()
@@ -161,6 +167,9 @@ owners:
         self.assertIn("模板原文无下划线", csv_text)
         self.assertIn("已归档", csv_text)
         self.assertIn("待确认是否必交", csv_text)
+        directory_text = (self.output / "00_归档目录.txt").read_text(encoding="utf-8")
+        self.assertIn("03_硬件&结构设计/", directory_text)
+        self.assertIn("ZC7.820.0001-V6.1.SchDoc", directory_text)
 
     def test_move_disabled_by_default(self) -> None:
         run_archive(
@@ -171,6 +180,18 @@ owners:
             confirm_move=True,
         )
         self.assertTrue((self.source / "ZC7.820.0001-V6.1.SchDoc").exists())
+
+    def test_zip_contains_directory_manifest(self) -> None:
+        run_archive(
+            source=self.source,
+            output=self.output,
+            cfg=self.cfg,
+            apply=True,
+            make_zip=True,
+        )
+        zip_path = next(self.output.glob("项目归档包_*.zip"))
+        with zipfile.ZipFile(zip_path) as archive:
+            self.assertIn("00_归档目录.txt", archive.namelist())
 
     def test_preview_no_write_and_override(self) -> None:
         ghost = self.tmp / "ghost_out"

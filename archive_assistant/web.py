@@ -219,6 +219,7 @@ def run_preview_or_apply(
         report = output / "00_归档报告.md"
         payload["report_excerpt"] = report.read_text(encoding="utf-8")[:4000] if report.is_file() else ""
         payload["artifacts"] = [
+            "00_归档目录.txt",
             "00_归档索引.xlsx",
             "00_归档索引.csv",
             "00_缺失资料清单.xlsx",

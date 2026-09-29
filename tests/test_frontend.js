@@ -43,4 +43,15 @@ const page = fs.readFileSync(path.join(__dirname, "..", "docs", "index.html"), "
 assert.match(page, /更新日志 · 2026-09-29/);
 assert.match(page, /Pick Place/);
 
+const manifest = app.directoryManifest([
+  { folder: "03_硬件&结构设计/05_装配文件/坐标文件", new_name: "Pick Place.csv" },
+  { folder: "04_软件设计/软件程序", actual_name: "SNMP监控软件.zip" },
+], "共视接收机");
+assert.match(manifest, /项目资料归档目录/);
+assert.match(manifest, /共视接收机/);
+assert.match(manifest, /00_归档目录\.txt/);
+assert.match(manifest, /坐标文件\//);
+assert.match(manifest, /Pick Place\.csv/);
+assert.match(manifest, /SNMP监控软件\.zip/);
+
 console.log("frontend classification tests passed");

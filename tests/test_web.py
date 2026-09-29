@@ -125,6 +125,8 @@ class WebApiTests(unittest.TestCase):
         self.assertGreater(applied["copied"], 0)
         self.assertTrue((tmp_out / "00_归档报告.md").is_file())
         self.assertTrue((tmp_out / "00_归档索引.csv").is_file())
+        self.assertTrue((tmp_out / "00_归档目录.txt").is_file())
+        self.assertIn("00_归档目录.txt", applied["artifacts"])
         moved = tmp_out / "00_需求确认" / "技术要求" / "网页改分类.dat"
         self.assertTrue(moved.is_file())
         # 上传/演示暂存不算删除源：演示文件仍在 session 目录逻辑上由 apply 复制

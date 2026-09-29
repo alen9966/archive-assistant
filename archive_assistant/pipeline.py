@@ -10,6 +10,7 @@ from archive_assistant.catalog import UNKNOWN_FOLDER, parse_folder_label, spec_b
 from archive_assistant.classify import classify_file, classify_override
 from archive_assistant.config import ProjectConfig, confirmer_remark, format_owners
 from archive_assistant.copyutil import copy_or_move, ensure_tree, unique_dest, zip_output
+from archive_assistant.directory import write_directory_manifest
 from archive_assistant.index import write_table
 from archive_assistant.names import sanitize_filename
 from archive_assistant.records import ArchiveRecord, build_missing, number_records
@@ -227,7 +228,8 @@ def run_archive(
             logs=logs,
             copied=copied,
         )
-        logs.append("已写入 00_归档索引 / 缺失 / 待确认 / 重复 / 归档报告")
+        write_directory_manifest(output, project_name=cfg.display_name(), mode=mode)
+        logs.append("已写入 00_归档目录 / 归档索引 / 缺失 / 待确认 / 重复 / 归档报告")
 
         if apply and make_zip:
             name = f"项目归档包_{cfg.display_name()}_{cfg.date_yyyymmdd()}.zip"

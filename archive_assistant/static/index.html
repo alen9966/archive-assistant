@@ -123,6 +123,7 @@
       <details class="changelog" open>
         <summary>更新日志 · 2026-09-29</summary>
         <ul class="hint">
+          <li>归档后自动生成完整的 <code>00_归档目录.txt</code>。</li>
           <li>Pick Place 的 CSV/TXT 自动归入坐标文件。</li>
           <li>“09 文档”归入出厂资料，“08 软件”归入软件程序。</li>
           <li>修复手动下拉确认后仍返回 99 待确认的问题。</li>
@@ -531,9 +532,9 @@ $("btnApply").addEventListener("click", async () => {
     const data = await api("/api/apply", previewBody());
     applyPayload(data);
     $("done").classList.remove("hidden");
-    $("donePath").textContent = "输出目录：" + data.output + "（已复制 " + data.copied + " 个）";
+    $("donePath").textContent = "输出目录：" + data.output + "（已复制 " + data.copied + " 个，含 00_归档目录.txt）";
     $("doneReport").textContent = data.report_excerpt || "";
-    setMsg("归档完成。源文件仍保留。", "okt");
+    setMsg("归档完成，已生成完整目录清单。源文件仍保留。", "okt");
   } catch (e) { setMsg(e.message, "err"); }
 });
 

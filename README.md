@@ -15,6 +15,8 @@ py -3 -m archive_assistant web
 
 然后打开 `http://127.0.0.1:8765/`。大 Altium 工程请用本机目录，不要浏览器上传。`History` / `__Previews` / `Project Logs` 默认跳过。
 
+归档完成后，输出根目录会生成 `00_归档目录.txt`，列出完整文件夹树和归档后的实际文件名；在线下载的 ZIP 也包含该目录清单。
+
 ## 配置
 
 复制 `project.example.yaml` 为 `project.yaml`，只填已知字段，不要编造。

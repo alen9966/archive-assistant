@@ -3,8 +3,9 @@
   const UNKNOWN = "99_待确认与其他";
   const MEDIA_STAGES = ["电装完", "三防前", "三防后", "发货前", "包装箱"];
   const SKIP_DIRS = new Set(["history", "__previews", ".git", "__pycache__", ".svn"]);
-  const SKIP_FILES = /^(thumbs\.db|desktop\.ini|\.ds_store)$/i;
+  const SKIP_FILES = /^(thumbs\.db|desktop\.ini|\.ds_store|00_归档目录\.txt)$/i;
   const KEEP_NAME = new Set(["坐标文件", "Gerber", "钢网", "库", "工程输出存档", "导出表格", "检查报告"]);
+  const DIRECTORY_MANIFEST = "00_归档目录.txt";
 
   const SPECS = [
     ["00_需求确认", "技术要求", "硬件/质量"],
@@ -380,7 +381,64 @@
     for (const p of treePaths()) await ensureDir(root, p.split("/"));
   }
 
-  async function copyOut(root, files) {
+  function directoryManifest(files, projectName) {
+    const root = { dirs: new Map(), files: new Set() };
+    const addDirectory = (path) => {
+      let node = root;
+      for (const part of String(path || "").split("/").filter(Boolean)) {
+        if (!node.dirs.has(part)) node.dirs.set(part, { dirs: new Map(), files: new Set() });
+        node = node.dirs.get(part);
+      }
+      return node;
+    };
+    for (const path of treePaths()) addDirectory(path);
+    for (const file of files || []) {
+      const node = addDirectory(file.folder);
+      node.files.add(file.actual_name || file.new_name || file.original_name);
+    }
+    root.files.add(DIRECTORY_MANIFEST);
+
+    let directoryCount = 0;
+    let fileCount = 0;
+    const render = (node, prefix) => {
+      const entries = [
+        ...[...node.dirs.entries()].map(([name, child]) => ({ name, child, directory: true })),
+        ...[...node.files].map((name) => ({ name, directory: false })),
+      ].sort((a, b) => Number(b.directory) - Number(a.directory) || a.name.localeCompare(b.name, "zh-CN"));
+      const lines = [];
+      entries.forEach((entry, index) => {
+        const last = index === entries.length - 1;
+        lines.push(prefix + (last ? "└── " : "├── ") + entry.name + (entry.directory ? "/" : ""));
+        if (entry.directory) {
+          directoryCount += 1;
+          lines.push(...render(entry.child, prefix + (last ? "    " : "│   ")));
+        } else {
+          fileCount += 1;
+        }
+      });
+      return lines;
+    };
+    const lines = render(root, "");
+    return [
+      "项目资料归档目录",
+      "项目：" + (projectName || "未命名项目"),
+      "生成时间：" + new Date().toLocaleString("zh-CN", { hour12: false }),
+      "统计：" + directoryCount + " 个文件夹，" + fileCount + " 个文件",
+      "",
+      "归档输出/",
+      ...lines,
+      "",
+    ].join("\n");
+  }
+
+  async function writeDirectoryManifest(root, files, projectName) {
+    const dest = await root.getFileHandle(DIRECTORY_MANIFEST, { create: true });
+    const writable = await dest.createWritable();
+    await writable.write(directoryManifest(files, projectName));
+    await writable.close();
+  }
+
+  async function copyOut(root, files, projectName) {
     let copied = 0;
     for (const f of files) {
       const parts = f.folder.split("/");
@@ -391,8 +449,10 @@
       const blob = f.file;
       await w.write(blob);
       await w.close();
+      f.actual_name = name;
       copied += 1;
     }
+    await writeDirectoryManifest(root, files, projectName);
     return copied;
   }
 
@@ -415,12 +475,17 @@
   function u32(n) { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n, true); return b; }
   function u16(n) { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, n, true); return b; }
 
-  async function downloadZip(files, zipName) {
+  async function downloadZip(files, zipName, projectName) {
+    const entries = files.concat([{
+      folder: "",
+      new_name: DIRECTORY_MANIFEST,
+      file: new Blob([directoryManifest(files, projectName)], { type: "text/plain;charset=utf-8" }),
+    }]);
     const chunks = [];
     const centrals = [];
     let offset = 0;
     const add = (arr) => { chunks.push(arr); offset += arr.length; };
-    for (const f of files) {
+    for (const f of entries) {
       const path = (f.folder + "/" + (f.new_name || f.original_name)).replace(/^\/+/, "");
       const nameBytes = new TextEncoder().encode(path);
       const data = new Uint8Array(await f.file.arrayBuffer());
@@ -444,7 +509,7 @@
     for (const c of centrals) { add(c.central); add(c.nameBytes); }
     const end = new Uint8Array([
       ...[0x50, 0x4b, 0x05, 0x06], ...u16(0), ...u16(0),
-      ...u16(files.length), ...u16(files.length),
+      ...u16(entries.length), ...u16(entries.length),
       ...u32(offset - centralStart), ...u32(centralStart), ...u16(0),
     ]);
     add(end);
@@ -466,6 +531,7 @@
     walkHandle,
     fromFileList,
     writeTree,
+    directoryManifest,
     copyOut,
     downloadZip,
     skipDir,

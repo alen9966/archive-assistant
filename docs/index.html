@@ -75,6 +75,7 @@
       <details class="changelog" open>
         <summary>更新日志 · 2026-09-29</summary>
         <ul class="hint">
+          <li>归档后自动生成完整的 <code>00_归档目录.txt</code>。</li>
           <li>Pick Place 的 CSV/TXT 自动归入坐标文件。</li>
           <li>“09 文档”归入出厂资料，“08 软件”归入软件程序。</li>
           <li>修复手动下拉确认后仍返回 99 待确认的问题。</li>
@@ -104,7 +105,7 @@
       <div id="tree"></div>
     </main>
   </div>
-  <script src="./app.js?v=20260929-1"></script>
+  <script src="./app.js?v=20260929-2"></script>
   <script>
     const state = { files: [], folders: ArchiveApp.folderOptions() };
     const $ = (id) => document.getElementById(id);
@@ -224,8 +225,8 @@
       const out = await window.showDirectoryPicker({ mode: "readwrite", startIn: "documents" });
       setMsg("正在建立目录并复制（不删除原文件）…");
       await ArchiveApp.writeTree(out);
-      const n = await ArchiveApp.copyOut(out, state.files);
-      setMsg("完成：已复制 " + n + " 个文件。原资料仍在。", "okt");
+      const n = await ArchiveApp.copyOut(out, state.files, $("project_name").value);
+      setMsg("完成：已复制 " + n + " 个文件，并生成 00_归档目录.txt。原资料仍在。", "okt");
     }
     $("btnApply").addEventListener("click", () => applyCopy().catch((e) => setMsg(e.message === "The user aborted a request." ? "已取消。" : e.message, "err")));
     $("btnZip").addEventListener("click", async () => {
@@ -238,8 +239,8 @@
       }
       setMsg("正在打包（文件仍只在本机）…");
       const name = ($("project_name").value || "项目") + "_归档包.zip";
-      await ArchiveApp.downloadZip(state.files, name);
-      setMsg("已开始下载压缩包。", "okt");
+      await ArchiveApp.downloadZip(state.files, name, $("project_name").value);
+      setMsg("已开始下载压缩包，包内含 00_归档目录.txt。", "okt");
     });
   </script>
 </body>

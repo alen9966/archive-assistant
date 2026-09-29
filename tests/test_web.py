@@ -60,6 +60,8 @@ class WebApiTests(unittest.TestCase):
         self.assertEqual(html_resp.status, 200)
         self.assertIn("生成分类文件夹", html)
         self.assertIn("选择本机文件夹", html)
+        self.assertIn("更新日志 · 2026-09-29", html)
+        self.assertIn("Pick Place", html)
 
         sess = self._json("POST", "/api/session", {})
         sid = sess["session_id"]

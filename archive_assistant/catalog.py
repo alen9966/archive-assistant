@@ -400,6 +400,16 @@ def spec_by_matrix_key(key: str) -> FolderSpec | None:
 def folder_options() -> list[dict[str, str]]:
     """网页下拉框：标准目录 + 多媒体阶段 + 99。"""
     opts: list[dict[str, str]] = []
+    # 部分既有项目把综合交付文档统一放在出厂资料根目录，允许人工选择该目录。
+    opts.append(
+        {
+            "main": "07_出厂资料",
+            "sub": "",
+            "extra_sub": "",
+            "label": "07_出厂资料",
+            "owners": "测试/质量",
+        }
+    )
     for spec in STANDARD_FOLDERS:
         path = f"{spec.main}/{spec.sub}"
         opts.append(
@@ -447,6 +457,8 @@ def parse_folder_label(label: str) -> tuple[str, str, str]:
     text = (label or "").replace("\\", "/").strip().strip("/")
     if not text or text == UNKNOWN_FOLDER:
         return UNKNOWN_FOLDER, "", ""
+    if text == "07_出厂资料":
+        return "07_出厂资料", "", ""
     for opt in folder_options():
         if opt["label"] == text:
             return opt["main"], opt["sub"], opt["extra_sub"]

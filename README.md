@@ -30,5 +30,8 @@ py -3 -m archive_assistant apply --source 待归档目录 --output 归档输出�
 
 ```text
 py -3 -m unittest tests.test_archive tests.test_classify tests.test_web -v
+node tests/test_frontend.js
 ```
+
+项目修改记录见 [`CHANGELOG.md`](CHANGELOG.md)。
 

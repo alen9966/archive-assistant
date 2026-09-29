@@ -77,6 +77,11 @@
     .result { white-space: pre-wrap; background: #f7f7f7; padding: 8px; border-radius: 6px; font-size: 12px; max-height: 240px; overflow: auto; }
     .hidden { display: none; }
     .hint { font-size: 12px; color: var(--muted); }
+    .changelog { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .changelog summary { cursor: pointer; font-weight: 650; color: var(--accent); }
+    .changelog ul { margin: 8px 0; padding-left: 18px; }
+    .changelog li { margin: 4px 0; }
+    .changelog a { color: var(--accent); }
     @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -115,6 +120,16 @@
         <button type="button" class="secondary" id="btnBrowse" style="white-space:nowrap;padding:6px 10px;">浏览</button>
       </div>
       <p class="hint">点「浏览 / 选择本机文件夹」直接扫描磁盘，不走浏览器上传。原文件夹原样保留。</p>
+      <details class="changelog" open>
+        <summary>更新日志 · 2026-09-29</summary>
+        <ul class="hint">
+          <li>Pick Place 的 CSV/TXT 自动归入坐标文件。</li>
+          <li>“09 文档”归入出厂资料，“08 软件”归入软件程序。</li>
+          <li>修复手动下拉确认后仍返回 99 待确认的问题。</li>
+          <li>增加出厂资料根目录人工选择项。</li>
+        </ul>
+        <a class="hint" href="https://github.com/alen9966/archive-assistant/blob/main/CHANGELOG.md" target="_blank" rel="noopener">查看完整更新日志</a>
+      </details>
     </aside>
     <main class="card">
       <div class="drop" id="drop" tabindex="0">

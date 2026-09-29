@@ -203,6 +203,25 @@ owners:
         )
         again = next(r for r in result2.records if r.original_name.endswith(".dat"))
         self.assertEqual(again.main, "00_需求确认")
+        self.assertEqual(again.status, "已归档")
+
+        root_override = {
+            dat.rel: {
+                "main": "07_出厂资料",
+                "sub": "",
+                "extra_sub": "",
+            }
+        }
+        result3 = run_archive(
+            source=self.source,
+            output=ghost,
+            cfg=self.cfg,
+            apply=False,
+            write_outputs=False,
+            overrides=root_override,
+        )
+        outgoing = next(r for r in result3.records if r.original_name.endswith(".dat"))
+        self.assertEqual((outgoing.main, outgoing.sub, outgoing.status), ("07_出厂资料", "", "已归档"))
         self.assertEqual(again.sub, "技术要求")
         self.assertEqual(again.new_name, "手动指定技术要求.dat")
         self.assertIn("用户在网页中指定分类", again.remark_text())

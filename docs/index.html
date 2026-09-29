@@ -46,6 +46,11 @@
     .okt { color: var(--ok); }
     .reason { color: var(--muted); max-width: 280px; }
     .hint { font-size: 12px; color: var(--muted); }
+    .changelog { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .changelog summary { cursor: pointer; font-weight: 650; color: var(--accent); }
+    .changelog ul { margin: 8px 0; padding-left: 18px; }
+    .changelog li { margin: 4px 0; }
+    .changelog a { color: var(--accent); }
     .hidden { display: none; }
     @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
   </style>
@@ -67,6 +72,16 @@
       <label>型号</label><input id="model" />
       <label>板号（每行一个）</label><textarea id="boards" placeholder="ZC7.820.0155-V3"></textarea>
       <p class="hint" id="browserHint"></p>
+      <details class="changelog" open>
+        <summary>更新日志 · 2026-09-29</summary>
+        <ul class="hint">
+          <li>Pick Place 的 CSV/TXT 自动归入坐标文件。</li>
+          <li>“09 文档”归入出厂资料，“08 软件”归入软件程序。</li>
+          <li>修复手动下拉确认后仍返回 99 待确认的问题。</li>
+          <li>增加出厂资料根目录人工选择项。</li>
+        </ul>
+        <a class="hint" href="https://github.com/alen9966/archive-assistant/blob/main/CHANGELOG.md" target="_blank" rel="noopener">查看完整更新日志</a>
+      </details>
     </aside>
     <main class="card">
       <div class="drop" id="drop" tabindex="0">
@@ -89,7 +104,7 @@
       <div id="tree"></div>
     </main>
   </div>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20260929-1"></script>
   <script>
     const state = { files: [], folders: ArchiveApp.folderOptions() };
     const $ = (id) => document.getElementById(id);
@@ -107,6 +122,9 @@
     }
     function previewItems(items) {
       state.files = ArchiveApp.classifyList(items);
+      renderFiles();
+    }
+    function renderFiles() {
       const total = state.files.length;
       const pending = state.files.filter((f) => f.status === "待确认").length;
       const classified = total - pending;
@@ -130,8 +148,9 @@
           const f = state.files.find((x) => x.id === el.dataset.id);
           if (!f) return;
           const fo = state.folders.find((x) => x.label === el.value);
-          if (fo) { f.folder = fo.label; f.main = fo.main; f.sub = fo.sub; f.extra_sub = fo.extra_sub; f.status = f.main.startsWith("99") ? "待确认" : "已归档"; }
-          previewItems(state.files.map((x) => ({ rel: x.rel, name: x.original_name, file: x.file, handle: x.handle })));
+          if (fo) ArchiveApp.applyFolderOverride(f, fo);
+          renderFiles();
+          setMsg(f.status === "已归档" ? "已确认人工分类，生成时将按当前选择保存。" : "该文件仍保留在待确认目录。", f.status === "已归档" ? "okt" : "");
         });
       });
     }
